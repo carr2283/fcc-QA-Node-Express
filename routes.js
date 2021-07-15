@@ -1,5 +1,5 @@
-const passport = require('passport');
-const bcrypt = require('bcrypt');
+const passport = require("passport");
+const bcrypt = require("bcrypt");
 
 module.exports = function (app, myDataBase) {
   app.route("/").get((req, res) => {
@@ -8,6 +8,7 @@ module.exports = function (app, myDataBase) {
       message: "Please login",
       showLogin: true,
       showRegistration: true,
+      showSocialAuth: true
     });
   });
 
@@ -25,6 +26,7 @@ module.exports = function (app, myDataBase) {
           const hash = bcrypt.hashSync(req.body.password, SALT_ROUNDS);
           myDataBase.insertOne(
             {
+              name: req.body.username,
               username: req.body.username,
               password: hash,
             },
@@ -50,16 +52,21 @@ module.exports = function (app, myDataBase) {
   app.post(
     "/login",
     passport.authenticate("local", {
-      successRedirect: "/profile",
       failureRedirect: "/",
     }),
     (req, res) => {
-      res.redirect("pug/profile");
+      res.redirect("/profile");
     }
   );
+  
+  app.route('/auth/github').get(passport.authenticate('github'));
 
+  app.route('/auth/github/callback').get(passport.authenticate('github', { failureRedirect: '/'}), (req, res) => {
+    req.session.user_id = req.user.id;
+    res.redirect('/chat');
+  });
+  
   app.route("/profile").get(ensureAuthenticated, (req, res) => {
-    console.log("hi here");
     res.render("pug/profile", { username: req.user.username });
   });
 
@@ -67,6 +74,10 @@ module.exports = function (app, myDataBase) {
     req.logout();
     res.redirect("/");
   });
+  
+  app.route('/chat').get(ensureAuthenticated, (req, res) => {
+    res.render('pug/chat', { user: req.user })
+  })
 
   app.get("/clear", (req, res, next) => {
     myDataBase.deleteMany({}, (err, data) => {
@@ -85,7 +96,9 @@ module.exports = function (app, myDataBase) {
 function ensureAuthenticated(req, res, next) {
   console.log(req.isAuthenticated());
   if (req.isAuthenticated()) {
+    console.log('Authenticated');
     return next();
   }
+  console.log('Not Authenticated');
   res.redirect("/");
 }

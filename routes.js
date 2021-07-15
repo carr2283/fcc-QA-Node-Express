@@ -8,7 +8,7 @@ module.exports = function (app, myDataBase) {
       message: "Please login",
       showLogin: true,
       showRegistration: true,
-      showSocialAuth: true
+      showSocialAuth: true,
     });
   });
 
@@ -58,14 +58,19 @@ module.exports = function (app, myDataBase) {
       res.redirect("/profile");
     }
   );
-  
-  app.route('/auth/github').get(passport.authenticate('github'));
 
-  app.route('/auth/github/callback').get(passport.authenticate('github', { failureRedirect: '/'}), (req, res) => {
-    req.session.user_id = req.user.id;
-    res.redirect('/chat');
-  });
-  
+  app.route("/auth/github").get(passport.authenticate("github"));
+
+  app
+    .route("/auth/github/callback")
+    .get(
+      passport.authenticate("github", { failureRedirect: "/" }),
+      (req, res) => {
+        req.session.user_id = req.user.id;
+        res.redirect("/chat");
+      }
+    );
+
   app.route("/profile").get(ensureAuthenticated, (req, res) => {
     res.render("pug/profile", { username: req.user.username });
   });
@@ -74,10 +79,10 @@ module.exports = function (app, myDataBase) {
     req.logout();
     res.redirect("/");
   });
-  
-  app.route('/chat').get(ensureAuthenticated, (req, res) => {
-    res.render('pug/chat', { user: req.user })
-  })
+
+  app.route("/chat").get(ensureAuthenticated, (req, res) => {
+    res.render("pug/chat", { user: req.user });
+  });
 
   app.get("/clear", (req, res, next) => {
     myDataBase.deleteMany({}, (err, data) => {
@@ -96,9 +101,9 @@ module.exports = function (app, myDataBase) {
 function ensureAuthenticated(req, res, next) {
   console.log(req.isAuthenticated());
   if (req.isAuthenticated()) {
-    console.log('Authenticated');
+    console.log("Authenticated");
     return next();
   }
-  console.log('Not Authenticated');
+  console.log("Not Authenticated");
   res.redirect("/");
 }

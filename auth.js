@@ -3,11 +3,9 @@ const bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
-var GitHubStrategy = require('passport-github').Strategy;
-
+var GitHubStrategy = require("passport-github").Strategy;
 
 module.exports = function (app, myDataBase) {
-
   passport.serializeUser((user, done) => {
     console.log("serializing user " + user.username);
     done(null, user._id);
@@ -19,7 +17,7 @@ module.exports = function (app, myDataBase) {
       if (err) {
         return done(err);
       }
-      done(null, doc)
+      done(null, doc);
     });
   });
 
@@ -48,43 +46,49 @@ module.exports = function (app, myDataBase) {
       });
     })
   );
-  passport.use(new GitHubStrategy({
-    clientID: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: "https://geode-celestial-attention.glitch.me/auth/github/callback"
-  },
-    (accessToken, refreshToken, profile, cb) => {
-      console.log('profile is ', profile)
-      myDataBase.findOneAndUpdate(
-        // query
-        { githubId: profile.id },
-        // update
-        {
-          $setOnInsert: {
-            githubId: profile.id,
-            name: profile.displayName || 'John Doe',
-            email: Array.isArray(profile.emails) ?
-              profile.emails[0].value
-            : 'No public email',
-            created_on: new Date(),
-            provider: profile.provider || ''
+  passport.use(
+    new GitHubStrategy(
+      {
+        clientID: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        callbackURL:
+          "https://geode-celestial-attention.glitch.me/auth/github/callback",
+      },
+      (accessToken, refreshToken, profile, cb) => {
+        console.log("profile is ", profile);
+        myDataBase.findOneAndUpdate(
+          // query
+          { githubId: profile.id },
+          // update
+          {
+            $setOnInsert: {
+              githubId: profile.id,
+              name: profile.displayName || "John Doe",
+              email: Array.isArray(profile.emails)
+                ? profile.emails[0].value
+                : "No public email",
+              created_on: new Date(),
+              provider: profile.provider || "",
+            },
+            $set: {
+              last_login: new Date(),
+            },
+            $inc: {
+              login_count: 1,
+            },
           },
-          $set: {
-            last_login: new Date()
+          // options
+          {
+            upsert: true,
+            new: true,
           },
-          $inc: {
-            login_count: 1
+          (err, doc) => {
+            if (err) return cb(err);
+            console.log("doc is ", doc.value);
+            return cb(null, doc.value);
           }
-        },
-        // options
-        {
-          upsert: true,
-          new: true
-        },
-        (err, doc) => {
-          if (err) return cb(err);
-          console.log('doc is ', doc.value)
-          return cb(null, doc.value);
-        });
-    }));
+        );
+      }
+    )
+  );
 };

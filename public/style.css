@@ -1,3 +1,19 @@
+:root {
+  --primary-color: #508991;
+  --secondary-color: #8ecae6;
+  --form-border-color: #172a3a;
+  --button-color: #09bc8a;
+  --prussian-blue: #172a3a70;
+  --orange: #fb8500;
+}
+
+body {
+  font-family: Montserrat, sans-serif;
+  font-weight: 200;
+  background-color: var(--primary-color);
+  color: white;
+}
+
 .border {
   border-style: inset;
   border-width: 1px;
@@ -5,6 +21,8 @@
 }
 
 .center {
+  font-family: Montserrat, sans-serif;
+  font-weight: 400;
   text-align: center;
   margin-left: auto;
   margin-right: auto;
@@ -32,20 +50,22 @@ form {
 
 form input {
   background-color: #eee;
-  border: green solid 2px;
-  padding: 10px; 
-  width: 90%; 
-  margin-right: .5%;
+  border: var(--form-border-color) solid 2px;
+  border-radius: 0.5em;
+  padding: 10px;
+  width: 90%;
+  margin-right: 0.5%;
 }
 
-form button { 
+form button {
+  color: white;
   width: 9%;
-  background: rgb(130, 224, 255);
-  border: none; 
-  padding: 10px; 
+  background: var(--button-color);
+  border-radius: 0.5em;
+  padding: 10px;
 }
 
-#messages { 
+#messages {
   list-style-type: none;
   text-align: left;
   margin: 0;
@@ -55,10 +75,18 @@ form button {
   overflow-x: hidden;
 }
 
-#messages li { 
+#messages li {
   padding: 5px 10px;
 }
 
-#messages li:nth-child(odd) { 
-  background: #eee;
+#messages li:nth-child(odd) {
+  background: var(--prussian-blue);
+}
+
+#chatform {
+  display: flex;
+}
+
+#send {
+  width: auto;
 }
